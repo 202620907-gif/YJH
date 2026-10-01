@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>용접 피드백 코치 | 실습 사진 AI 분석</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Pretendard", "system-ui", "sans-serif"] },
+          colors: { spark: { 400: "#fb923c", 500: "#f97316", 600: "#ea580c" } },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+  <div class="mx-auto max-w-md min-h-screen px-4 pb-28">
+
+    <header class="pt-8 pb-5 text-center">
+      <div class="text-4xl mb-2">⚡</div>
+      <h1 class="text-2xl font-extrabold tracking-tight">
+        용접 <span class="text-spark-500">피드백 코치</span>
+      </h1>
+      <p class="mt-1.5 text-sm text-slate-400">실습 사진을 올리면 AI가 결함을 찾아 개선법을 알려드려요</p>
+    </header>
+
+    <main>
+      <section class="bg-slate-900 rounded-2xl border border-slate-800 p-4 mb-4">
+        <h2 class="flex items-center gap-2 text-sm font-bold text-spark-400 mb-3">
+          <span class="w-5 h-5 rounded-full bg-spark-500 text-white text-xs grid place-items-center">1</span>
+          용접 공법 선택
+        </h2>
+        <div id="process-group" class="grid grid-cols-3 gap-2">
+          <button type="button" data-process="TIG" class="process-chip">TIG</button>
+          <button type="button" data-process="SMAW" class="process-chip">아크<br /><span class="text-[10px] font-normal opacity-70">SMAW</span></button>
+          <button type="button" data-process="GMAW" class="process-chip">CO2<br /><span class="text-[10px] font-normal opacity-70">GMAW</span></button>
+        </div>
+      </section>
+
+      <section class="bg-slate-900 rounded-2xl border border-slate-800 p-4 mb-4">
+        <h2 class="flex items-center gap-2 text-sm font-bold text-spark-400 mb-3">
+          <span class="w-5 h-5 rounded-full bg-spark-500 text-white text-xs grid place-items-center">2</span>
+          실습 사진 업로드
+        </h2>
+
+        <div id="upload-area" class="upload-area">
+          <div class="text-3xl mb-2">📷</div>
+          <p class="text-sm font-semibold">비드가 잘 보이게 촬영해 주세요</p>
+          <p class="text-xs text-slate-400 mt-1">JPG · PNG · 10MB 이하</p>
+        </div>
+        <input type="file" id="input-camera" accept="image/*" capture="environment" class="hidden" />
+        <input type="file" id="input-album" accept="image/jpeg,image/png,image/webp" class="hidden" />
+        <div id="preview-wrap" class="hidden relative mt-3">
+          <img id="preview" class="rounded-xl w-full max-h-72 object-contain bg-slate-950 border border-slate-700" alt="업로드한 용접 사진" />
+          <button id="btn-remove" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/70 border border-slate-600 text-slate-300 grid place-items-center text-lg leading-none">×</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <button type="button" id="btn-camera" class="btn-secondary">📸 사진 촬영</button>
+          <button type="button" id="btn-album" class="btn-secondary">🖼️ 앨범 선택</button>
+        </div>
+
+        <details class="mt-4 text-sm">
+          <summary class="cursor-pointer text-slate-400 select-none">+ 재질·자세·메모 입력 (선택)</summary>
+          <div class="mt-3 space-y-3">
+            <div>
+              <label for="material" class="block text-xs font-semibold text-slate-400 mb-1">모재(재질)</label>
+              <select id="material" class="input-field">
+                <option value="철판(SS400)">철판 (SS400)</option>
+                <option value="스테인리스(STS304)">스테인리스 (STS304)</option>
+                <option value="알루미늄">알루미늄</option>
+                <option value="파이프">파이프</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div>
+              <label for="position" class="block text-xs font-semibold text-slate-400 mb-1">용접 자세</label>
+              <select id="position" class="input-field">
+                <option value="">선택 안 함</option>
+                <option value="다운핸드(1G)">다운핸드 (1G)</option>
+                <option value="수평 필렛(2F)">수평 필렛 (2F)</option>
+                <option value="입항(3G)">입항 (3G)</option>
+                <option value="상향(4G)">상향 (4G)</option>
+              </select>
+            </div>
+            <div>
+              <label for="memo" class="block text-xs font-semibold text-slate-400 mb-1">메모 (전류, 어려웠던 점 등)</label>
+              <input id="memo" type="text" placeholder="예: 120A로 실습, 끝부분이 어색함" class="input-field" />
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <button id="btn-analyze" class="btn-primary" disabled>
+        🔍 AI 분석 시작
+      </button>
+      <p id="error-msg" class="hidden mt-3 text-center text-sm text-red-400"></p>
+    </main>
+
+    <section id="result-section" class="hidden mt-6">
+      <h2 class="flex items-center gap-2 text-sm font-bold text-spark-400 mb-3">
+        <span class="w-5 h-5 rounded-full bg-spark-500 text-white text-xs grid place-items-center">3</span>
+        분석 결과
+      </h2>
+
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 mb-4 text-center">
+        <div class="relative w-36 h-36 mx-auto">
+          <svg viewBox="0 0 120 120" class="w-full h-full -rotate-90">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="#1e293b" stroke-width="10" />
+            <circle id="score-ring" cx="60" cy="60" r="52" fill="none" stroke="#f97316" stroke-width="10"
+                    stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
+                    class="transition-[stroke-dashoffset] duration-1000 ease-out" />
+          </svg>
+          <div class="absolute inset-0 grid place-items-center">
+            <div>
+              <div id="score-num" class="text-4xl font-extrabold">–</div>
+              <div id="score-grade" class="text-xs font-bold text-slate-400 tracking-widest">GRADE –</div>
+            </div>
+          </div>
+        </div>
+        <p id="summary" class="mt-4 text-sm leading-relaxed text-slate-300 text-left"></p>
+        <p id="analyzer-badge" class="mt-3 text-[11px] text-slate-500"></p>
+      </div>
+
+      <div id="defect-list" class="space-y-3 mb-4"></div>
+
+      <div id="tips-card" class="hidden bg-emerald-950/60 border border-emerald-800 rounded-2xl p-4 mb-4">
+        <h3 class="text-sm font-bold text-emerald-400 mb-2">💡 다음 실습 꿀팁</h3>
+        <ul id="tips-list" class="space-y-2 text-sm text-slate-200 list-disc list-inside"></ul>
+      </div>
+
+      <button id="btn-again" class="btn-secondary w-full">🔄 다른 사진 분석하기</button>
+    </section>
+
+    <section id="history-section" class="mt-8">
+      <h2 class="flex items-center gap-2 text-sm font-bold text-slate-400 mb-3">
+        📂 나의 실습 기록
+        <button id="btn-clear-history" class="ml-auto text-[11px] font-normal text-slate-500 underline">전체 삭제</button>
+      </h2>
+      <div id="history-list" class="space-y-2">
+        <p class="text-xs text-slate-500 text-center py-4">아직 기록이 없습니다. 첫 실습 사진을 분석해 보세요!</p>
+      </div>
+    </section>
+  </div>
+
+  <div id="loading" class="hidden fixed inset-0 z-50 bg-slate-950/90 grid place-items-center">
+    <div class="text-center">
+      <div class="w-16 h-16 mx-auto mb-5 rounded-full border-4 border-slate-700 border-t-spark-500 animate-spin"></div>
+      <p class="text-sm font-semibold text-spark-400">용접 비드를 자세히 살펴보는 중…</p>
+      <p class="text-xs text-slate-500 mt-1.5">최대 10초 정도 걸릴 수 있어요</p>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-slate-800 border border-slate-600 text-sm shadow-xl"></div>
+
+  <footer class="max-w-md mx-auto text-center text-[11px] text-slate-600 pb-6">
+    AI 분석 결과는 참고용이며, 반드시 지도 교사의 최종 확인을 받으세요.
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
