@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="모재 두께에 따른 루트부 개선과 공정별 패스 전류·전압을 안내하는 용접 실습 MVP"
+    />
+    <meta name="theme-color" content="#f4f5f6" />
+    <title>용접 실습 가이드 | 개선·패스 플래너</title>
+    <link rel="stylesheet" href="./welding-current-mvp/styles.css" />
+    <script src="./welding-current-mvp/app.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="용접 가이드 홈">
+          <span class="brand-mark" aria-hidden="true">⚡</span>
+          <span>
+            <strong>WELDING GUIDE</strong>
+            <small>초보 용접 실습 도우미</small>
+          </span>
+        </a>
+        <span class="header-tag">탄소강 · 맞대기 이음</span>
+      </header>
+
+      <main id="top">
+        <section class="hero">
+          <p class="eyebrow">JOINT PREP &amp; PASS PLANNER</p>
+          <h1>두께에 맞춰 개선하고,<br class="desktop-break" />패스별 전류를 계획해요</h1>
+          <p class="hero-copy">
+            모재 두께와 공정을 선택하면 루트면·루트간격 참고값과 루트부터 캡까지의
+            전류 시작 범위를 보여줍니다.
+          </p>
+        </section>
+
+        <section class="planner-grid" aria-label="용접 조건과 추천 설정">
+          <section class="panel controls-panel">
+            <div class="section-heading compact-heading">
+              <div>
+                <span class="step-label">STEP 01</span>
+                <h2>조건 선택</h2>
+              </div>
+              <span class="muted small">실습 기준 설정</span>
+            </div>
+
+            <fieldset class="process-fieldset">
+              <legend>용접 공정</legend>
+              <div class="process-grid" id="process-options">
+                <button class="process-option is-selected" type="button" data-process="smaw" aria-pressed="true">
+                  <span class="process-icon" aria-hidden="true">⚡</span>
+                  <strong>피복아크 <span>SMAW</span></strong>
+                  <small>E6013 전극</small>
+                </button>
+                <button class="process-option" type="button" data-process="tig" aria-pressed="false">
+                  <span class="process-icon" aria-hidden="true">〰</span>
+                  <strong>티그 <span>TIG</span></strong>
+                  <small>아르곤 차폐</small>
+                </button>
+                <button class="process-option" type="button" data-process="gmawSolid" aria-pressed="false">
+                  <span class="process-icon" aria-hidden="true">◉</span>
+                  <strong>CO₂ 솔리드와이어</strong>
+                  <small>GMAW · ER70S-6</small>
+                </button>
+                <button class="process-option" type="button" data-process="fcaw" aria-pressed="false">
+                  <span class="process-icon" aria-hidden="true">⦿</span>
+                  <strong>CO₂ 플럭스코어드</strong>
+                  <small>FCAW-G · E71T-1C</small>
+                </button>
+              </div>
+            </fieldset>
+
+            <div class="input-heading">
+              <label for="thickness">모재 두께 <span>(탄소강)</span></label>
+              <span class="unit-chip">mm</span>
+            </div>
+            <div class="thickness-input-wrap">
+              <input id="thickness" type="number" min="0.8" max="20" step="0.1" value="6" inputmode="decimal" />
+              <span>mm</span>
+            </div>
+            <input id="thickness-range" class="thickness-range" type="range" min="0.8" max="20" step="0.1" value="6" aria-label="두께 조절" />
+            <div class="range-labels"><span>0.8 mm</span><span>20 mm</span></div>
+            <div class="quick-picks" aria-label="빠른 두께 선택">
+              <button type="button" data-thickness="2">2 mm</button>
+              <button type="button" data-thickness="3.2">3.2 mm</button>
+              <button type="button" data-thickness="6">6 mm</button>
+              <button type="button" data-thickness="10">10 mm</button>
+            </div>
+
+            <label class="field-label" for="position">용접 자세</label>
+            <select id="position" class="select-control">
+              <option value="flat">아래보기 · 수평 (F)</option>
+              <option value="verticalOverhead">수직 · 위보기 (V / OH)</option>
+            </select>
+            <p class="helper-text">자세에 따라 필요한 열입력과 권장 전류가 달라질 수 있어요.</p>
+          </section>
+
+          <section class="result-panel" aria-live="polite" aria-labelledby="result-title">
+            <div class="result-topline">
+              <div>
+                <p class="eyebrow light-eyebrow">RECOMMENDED SETUP</p>
+                <h2 id="result-title">피복아크 · SMAW</h2>
+              </div>
+              <span class="thickness-badge" id="result-thickness">6 mm</span>
+            </div>
+            <p class="result-subtitle" id="process-subtitle">탄소강용 일반 루틸계 피복전극</p>
+            <div id="recommendation-content"></div>
+            <p class="result-footnote" id="result-footnote"></p>
+          </section>
+        </section>
+
+        <section class="joint-grid" id="joint-section">
+          <article class="panel prep-panel">
+            <div class="section-heading">
+              <div>
+                <span class="step-label">STEP 02</span>
+                <h2>루트부 개선 참고</h2>
+              </div>
+              <span class="pill">맞대기 이음</span>
+            </div>
+            <div class="prep-values" id="prep-values"></div>
+            <p class="prep-note" id="prep-note"></p>
+            <p class="pass-count" id="pass-count"></p>
+          </article>
+
+          <article class="panel diagram-panel">
+            <h2>루트면과 루트간격, 어디를 재나요?</h2>
+            <div class="diagram-layout">
+              <div class="diagram-box" id="joint-diagram"></div>
+              <ul class="definition-list">
+                <li><strong>개선각</strong><span>두 판 가장자리를 비스듬히 깎아 만든 홈의 각도예요. 표시값은 양쪽을 합친 포함각입니다.</span></li>
+                <li><strong>루트면</strong><span>개선 끝에 남겨두는 평평한 두께(land)예요. 너무 두꺼우면 루트 용입이 어려울 수 있어요.</span></li>
+                <li><strong>루트간격</strong><span>맞댄 두 판 사이의 틈이에요. 좁으면 용입이 부족하고, 넓으면 용락될 수 있어요.</span></li>
+              </ul>
+            </div>
+            <p class="caution-note">이 치수는 탄소강 한쪽 V형 맞대기 이음의 연습용 참고값입니다. 실제 치수는 공정, 백킹 유무, 이음 형식, 재료 규격과 WPS에 따라 달라집니다.</p>
+          </article>
+        </section>
+
+        <section class="learning-grid">
+          <article class="panel learning-card">
+            <span class="step-label">BEGINNER STEPS</span>
+            <h2>패스 전류, 이렇게 조절해요</h2>
+            <ol class="steps-list">
+              <li><span>1</span><div><strong>루트</strong><p>용락을 피하면서 루트가 붙도록 전체 범위의 낮은 쪽에서 시작해요.</p></div></li>
+              <li><span>2</span><div><strong>본용접 1차</strong><p>루트 상태가 양호하면 5–10A 올리거나 권장 밴드 안에서 송급량을 조금 높여요.</p></div></li>
+              <li><span>3</span><div><strong>본용접 2·3차</strong><p>패스가 깊고 좁으면 조금 올리고, 비드가 넓거나 모서리가 파이면 낮춰요.</p></div></li>
+              <li><span>4</span><div><strong>마지막 캡</strong><p>전류를 무조건 올리지 않아요. 같은 값 또는 5–10A 낮게 시작해 비드 폭을 조절해요.</p></div></li>
+            </ol>
+          </article>
+
+          <article class="panel learning-card">
+            <span class="step-label">PROCESS NOTES</span>
+            <h2>공정마다 조절 방식이 달라요</h2>
+            <div class="process-notes">
+              <p><strong>SMAW</strong>전류를 직접 설정해요. 전극 지름·자세·제조사 자료를 확인하세요.</p>
+              <p><strong>TIG</strong>페달로 열을 조절하고 토치 속도·용가봉 투입도 함께 맞춰요.</p>
+              <p><strong>솔리드 / FCAW</strong>송급속도로 전류를, 전압으로 아크 길이·비드 모양을 조절해요. 암페어 표시값을 단독 설정값으로 보지 마세요.</p>
+            </div>
+            <div class="troubleshoot-box">
+              <strong>빠른 점검</strong>
+              <p>전극이 붙고 아크가 끊기면 전류/송급이 낮을 수 있어요. 스패터가 과하거나 언더컷이 생기면 전류뿐 아니라 진행 속도·아크 길이도 확인하세요. 한 번에 한 변수만 바꿔 고철에서 비교합니다.</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="safety-banner">
+          <span class="safety-icon" aria-hidden="true">🛡️</span>
+          <div>
+            <h2>안전·적용 범위</h2>
+            <p>이 계산기는 탄소강 평판 맞대기 이음의 학습용 시작값이며 구조물·압력용기·배관의 승인 용접절차(WPS)를 대신하지 않습니다. 용접면·장갑·환기 등 보호구를 갖추고 지도교사 지시에 따르세요.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <strong>참고 자료</strong>
+        <div class="source-links">
+          <a href="https://www.twi-global.com/technical-knowledge/job-knowledge/design-part-3-092" target="_blank" rel="noreferrer">TWI · 맞대기 이음/루트부 설계 참고</a>
+          <a href="https://www.weldcotemetals.com/dataFiles/specs/teche6013.pdf" target="_blank" rel="noreferrer">Weldcote Metals · E6013 전류표</a>
+          <a href="https://www.millerwelds.com/en-us/resources/weld-setting-calculators/tig-welding-calculator" target="_blank" rel="noreferrer">Miller · TIG 설정 계산기</a>
+        </div>
+        <p>TIG·GMAW·FCAW 숫자와 패스별 분배는 특정 제조사 WPS가 아닌 교육용 추정치입니다. 실제 소모재 데이터시트와 승인 절차를 우선하세요.</p>
+        <p class="made-with">정적 MVP · HTML · CSS · JavaScript</p>
+      </footer>
+    </div>
+  </body>
+</html>
